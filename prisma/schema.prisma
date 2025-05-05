@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  role      Role     @default(user)
+  bookings  Booking[]
+}
+
+model Hall {
+  id              String     @id @default(uuid())
+  name            String
+  description     String?
+  location        String
+  sportType       String
+  capacity        Int
+  openingHours    String
+  constructionYear Int
+  isAccessible    Boolean
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  timeSlots       TimeSlot[]
+  @@map("sports_halls")
+}
+
+model TimeSlot {
+  id           String     @id @default(uuid())
+  sportsHallId String
+  startTime    DateTime
+  endTime      DateTime
+  isAvailable  Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  sportsHall   Hall       @relation(fields: [sportsHallId], references: [id])
+  bookings     Booking[]
+  @@map("time_slots")
+}
+
+model Booking {
+  id         Int       @id @default(autoincrement())
+  user       User      @relation(fields: [userId], references: [id])
+  userId     Int
+  timeSlot   TimeSlot  @relation(fields: [timeSlotId], references: [id])
+  timeSlotId String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  purpose    String
+  notes      String?
+}
